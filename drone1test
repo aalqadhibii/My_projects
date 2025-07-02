@@ -1,0 +1,26 @@
+import cv2
+from djitellopy import Tello
+
+print("start")
+drone = Tello()
+print("drone ")
+
+drone.connect()
+print("connected ")
+
+drone.takeoff()
+
+frame = drone.get_frame_read()
+
+while frame(100):
+    frame = drone.get_frame_read()
+    cv2.imshow("frame")
+
+    break
+
+print("your video is ready")
+
+cv2.imshow("frame", frame)
+drone.land()
+
+
