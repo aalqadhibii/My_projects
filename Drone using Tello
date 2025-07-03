@@ -1,0 +1,57 @@
+from djitellopy import Tello
+import cv2
+import time
+import threading
+
+tello = Tello()
+
+tello.connect()
+print(f"Battery: {tello.get_battery()}%")
+
+tello.streamon()
+
+frame_read = tello.get_frame_read()
+
+video_writer = cv2.VideoWriter("square_flight.avi", cv2.VideoWriter_fourcc(*'XVID'), 30, (960, 720))
+
+recording = True
+
+def record_video():
+    global recording
+    while recording:
+        frame = frame_read.frame
+        frame_resized = cv2.resize(frame, (960, 720))
+        video_writer.write(frame_resized)
+        cv2.imshow("Drone Camera", frame_resized)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+recording_thread = threading.Thread(target=record_video)
+recording_thread.start()
+
+try:
+    tello.takeoff()
+    time.sleep(2)
+
+    tello.move_up(80)
+    time.sleep(2)
+
+    for i in range(4):
+        tello.move_forward(80)
+        time.sleep(1)
+        tello.rotate_counter_clockwise(90)
+        time.sleep(1)
+
+    tello.land()
+
+except Exception as e:
+    print(f"Error occurred: {e}")
+    tello.land()
+
+finally:
+    recording = False
+    recording_thread.join()
+    video_writer.release()
+    cv2.destroyAllWindows()
+    tello.streamoff()
+    print("Mission completed and video saved.")
