@@ -1,0 +1,50 @@
+import asyncio
+
+from mavsdk import System
+
+async def run():
+    drone = System()
+    print('Connecting to PX4...')
+
+    await drone.connect(system_address="udp://:14540")
+    print('drone is connected')
+    print ('arming...')
+    await drone.action.arm()
+    print('drone armed')
+
+    print('taking off...')
+    await drone.action.takeoff()
+    await asyncio.sleep(10)
+    #-----------------------------------------------------------------------
+    print("getting  altitude at home location...")
+    home= await anext(drone.telemetry.home())
+
+absolute_altitude=home.absolute_altitude_m
+absolute_latitude=home.latitude_deg
+absolute_longitude=home.longitude_deg
+
+flying_alt= absolute_altitude + 5.0
+print(f'flying altitude is :{flying_alt} ')
+
+#---------------------------------------------------------------------------
+    print('going to target 1')
+    await drone.action.goto_location(absolute_latitude +10 , absolute_longitude, flying_alt, 0)
+    await asyncio.sleep(5)
+
+print('going to target 2')
+await drone.action.goto_location(absolute_latitude +10 , absolute_longitude, flying_alt, 0)
+await asyncio.sleep(5)
+
+print('going to target 3')
+await drone.action.goto_location(absolute_latitude +10 , absolute_longitude, flying_alt, 0)
+await asyncio.sleep(5)
+
+print('going to target 4')
+await drone.action.goto_location(absolute_latitude +10 , absolute_longitude, flying_alt, 0)
+await asyncio.sleep(5)
+
+print("landing....")
+await drone.action.land()
+await asyncio.sleep(5)
+
+asyncio.run(run())
