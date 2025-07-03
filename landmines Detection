@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv('/content/minefield_data_english.csv')
+
+print(df['object_type'].value_counts())
+
+mine_counts = df[df['object_type'] == 'Mine']['mine_type'].value_counts()
+print("عدد الألغام حسب النوع:")
+print(mine_counts)
+
+mine_conf = df[df['object_type'] == 'Mine'].groupby('mine_type')['confidence'].mean()
+print("متوسط الثقة لكل نوع من الألغام:")
+print(mine_conf)
+
+plt.figure(figsize=(10, 7))
+colors = {
+    'Anti-personnel mine': 'red',
+    'Anti-tank mine': 'blue',
+    'Anti-vehicle mine': 'green'
+}
+for mine_type, color in colors.items():
+    subset = df[(df['object_type'] == 'Mine') & (df['mine_type'] == mine_type)]
+    plt.scatter(subset['x'], subset['y'], c=color, label=mine_type, alpha=0.7)
+
+plt.title('Landmines locations')
+plt.xlabel('X (meter)')
+plt.ylabel('Y (meter)')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+heatmap_data = pd.DataFrame(0, index=range(31), columns=range(31))
+
+for _, row in df[df['object_type'] == 'Mine'].iterrows():
+    x = int(round(row['x']))
+    y = int(round(row['y']))
+    if 0 <= x <= 30 and 0 <= y <= 30:
+        heatmap_data.at[y, x] += 1
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(heatmap_data, cmap='Reds', linewidths=0.5)
+plt.title('Heat map of mine density')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.gca().invert_yaxis()
+plt.show()
